@@ -5,8 +5,8 @@ import TensorFlow
 import PythonKit
 import Foundation
 
-public struct WeightedBetweenFactorPose2: LinearizableFactor2 {
-  public typealias Pose = Pose2
+public struct WeightedBetweenFactorVector2: LinearizableFactor2 {
+  public typealias Pose = Vector2
   public let edges: Variables.Indices
   public let difference: Pose
   public let weight: Double
@@ -27,8 +27,8 @@ public struct WeightedBetweenFactorPose2: LinearizableFactor2 {
   }
 }
 
-public struct WeightedBetweenFactorPose2SD: LinearizableFactor2 {
-  public typealias Pose = Pose2
+public struct WeightedBetweenFactorVector2SD: LinearizableFactor2 {
+  public typealias Pose = Vector2
   public let edges: Variables.Indices
   public let difference: Pose
 
@@ -52,8 +52,8 @@ public struct WeightedBetweenFactorPose2SD: LinearizableFactor2 {
   }
 }
 
-public struct WeightedPriorFactorPose2: LinearizableFactor1 {
-  public typealias Pose = Pose2
+public struct WeightedPriorFactorVector2: LinearizableFactor1 {
+  public typealias Pose = Vector2
   public let edges: Variables.Indices
   public let prior: Pose
   public let weight: Double
@@ -73,8 +73,8 @@ public struct WeightedPriorFactorPose2: LinearizableFactor1 {
   }
 }
 
-public struct WeightedPriorFactorPose2SD: LinearizableFactor1 {
-  public typealias Pose = Pose2
+public struct WeightedPriorFactorVector2SD: LinearizableFactor1 {
+  public typealias Pose = Vector2
   public let edges: Variables.Indices
   public let prior: Pose
   public let sdX: Double
@@ -192,8 +192,8 @@ public struct TrackingConfiguration<FrameVariables: VariableTuple> {
   // Try to initialize pose of the `i+1`-th variable by sampling
   mutating func extendBySampling(x: inout VariableAssignments, fromFrame i:Int, withGraph g: FactorGraph, numberOfSamples: Int = 2000)  {
     // First get pose IDs: pose is assumed to be first variable in the frameVariableID tuple
-    let currentPoseID = (frameVariableIDs[i + 1] as! Tuple1<TypedID<Pose2>>).head
-    let previousPoseID = (frameVariableIDs[i] as! Tuple1<TypedID<Pose2>>).head
+    let currentPoseID = (frameVariableIDs[i + 1] as! Tuple1<TypedID<Vector2>>).head
+    let previousPoseID = (frameVariableIDs[i] as! Tuple1<TypedID<Vector2>>).head
     
     // Remember best pose
     var bestPose = x[currentPoseID]
@@ -310,49 +310,49 @@ public func getTrainingBatches(
   return (fg: foregroundBatch, bg: backgroundBatch, statistics: statistics)
 }
 
-/// Train a random projection tracker with a full Gaussian foreground model
-/// and a Naive Bayes background model.
-/// If EMflag is true we will do several iterations of Monte Carlo EM
-public func trainRPTracker(trainingData: OISTBeeVideo,
-                           frames: [Tensor<Float>],
-                           boundingBoxSize: (Int, Int),
-                           withFeatureSize d: Int,
-                           fgRandomFrameCount: Int = 10,
-                           bgRandomFrameCount: Int = 10,
-                           usingEM EMflag: Bool = true
-) -> TrackingConfiguration<Tuple1<Pose2>> {
-  let (fg, bg, statistics) = getTrainingBatches(
-    dataset: trainingData, boundingBoxSize: boundingBoxSize,
-    fgRandomFrameCount: fgRandomFrameCount,
-    bgRandomFrameCount: bgRandomFrameCount
-  )
+// /// Train a random projection tracker with a full Gaussian foreground model
+// /// and a Naive Bayes background model.
+// /// If EMflag is true we will do several iterations of Monte Carlo EM
+// public func trainRPTracker(trainingData: OISTBeeVideo,
+//                            frames: [Tensor<Float>],
+//                            boundingBoxSize: (Int, Int),
+//                            withFeatureSize d: Int,
+//                            fgRandomFrameCount: Int = 10,
+//                            bgRandomFrameCount: Int = 10,
+//                            usingEM EMflag: Bool = true
+// ) -> TrackingConfiguration<Tuple1<Pose2>> {
+//   let (fg, bg, statistics) = getTrainingBatches(
+//     dataset: trainingData, boundingBoxSize: boundingBoxSize,
+//     fgRandomFrameCount: fgRandomFrameCount,
+//     bgRandomFrameCount: bgRandomFrameCount
+//   )
   
-  let randomProjector = RandomProjection(
-    fromShape: [boundingBoxSize.0, boundingBoxSize.1, 1], toFeatureSize: d
-  )
+//   let randomProjector = RandomProjection(
+//     fromShape: [boundingBoxSize.0, boundingBoxSize.1, 1], toFeatureSize: d
+//   )
 
-  let batchPositive = randomProjector.encode(fg)
-  let foregroundModel = MultivariateGaussian(from: batchPositive, given: 1e-3)
+//   let batchPositive = randomProjector.encode(fg)
+//   let foregroundModel = MultivariateGaussian(from: batchPositive, given: 1e-3)
 
-  let batchNegative = randomProjector.encode(bg)
-  let backgroundModel = GaussianNB(from: batchNegative, given: 1e-3)
+//   let batchNegative = randomProjector.encode(bg)
+//   let backgroundModel = GaussianNB(from: batchNegative, given: 1e-3)
 
-  let tracker = makeRandomProjectionTracker(
-    model: randomProjector, statistics: statistics,
-    frames: frames, targetSize: boundingBoxSize,
-    foregroundModel: foregroundModel, backgroundModel: backgroundModel
-  )
+//   let tracker = makeRandomProjectionTracker(
+//     model: randomProjector, statistics: statistics,
+//     frames: frames, targetSize: boundingBoxSize,
+//     foregroundModel: foregroundModel, backgroundModel: backgroundModel
+//   )
   
-  return tracker
-}
+//   return tracker
+// }
 
 /// Given a trained tracker, run the tracker on a given number of frames on the test set
 public func createSingleTrack(
   onTrack trackId: Int,
-  withTracker tracker: inout TrackingConfiguration<Tuple1<Pose2>>,
+  withTracker tracker: inout TrackingConfiguration<Tuple1<Vector2>>,
   andTestData testData: OISTBeeVideo,
   withSampling samplingFlag: Bool = false
-) -> ([Pose2], [Pose2]) {
+) -> ([Vector2], [Pose2]) {
   precondition(trackId < testData.tracks.count, "specified track does not exist!!!")
 
   let startPose = testData.tracks[trackId].boxes[0].center
@@ -362,56 +362,56 @@ public func createSingleTrack(
   return (track, groundTruth)
 }
 
-/// Runs the random projections tracker
-/// Given a training set, it will train an RP tracker
-/// and run it on one track in the test set:
-///  - output: image with track and overlap metrics
-public func runRPTracker(
-  directory: URL, onTrack trackIndex: Int, forFrames: Int = 80,
-  withSampling samplingFlag: Bool = false,
-  usingEM EMflag: Bool = true,
-  withFeatureSize d: Int = 100,
-  savePatchesIn resultDirectory: String? = nil
-) -> (fig: PythonObject, track: [Pose2], groundTruth: [Pose2]) {
-  // train foreground and background model and create tracker
-  let trainingData = OISTBeeVideo(directory: directory, length: 100)!
-  let testData = OISTBeeVideo(directory: directory, afterIndex: 100, length: forFrames)!
+// /// Runs the random projections tracker
+// /// Given a training set, it will train an RP tracker
+// /// and run it on one track in the test set:
+// ///  - output: image with track and overlap metrics
+// public func runRPTracker(
+//   directory: URL, onTrack trackIndex: Int, forFrames: Int = 80,
+//   withSampling samplingFlag: Bool = false,
+//   usingEM EMflag: Bool = true,
+//   withFeatureSize d: Int = 100,
+//   savePatchesIn resultDirectory: String? = nil
+// ) -> (fig: PythonObject, track: [Pose2], groundTruth: [Pose2]) {
+//   // train foreground and background model and create tracker
+//   let trainingData = OISTBeeVideo(directory: directory, length: 100)!
+//   let testData = OISTBeeVideo(directory: directory, afterIndex: 100, length: forFrames)!
   
-  precondition(testData.tracks[trackIndex].boxes.count == forFrames, "track length and required does not match")
+//   precondition(testData.tracks[trackIndex].boxes.count == forFrames, "track length and required does not match")
   
-  var tracker = trainRPTracker(
-    trainingData: trainingData,
-    frames: testData.frames, boundingBoxSize: (40, 70), withFeatureSize: d, usingEM :EMflag
-  )
+//   var tracker = trainRPTracker(
+//     trainingData: trainingData,
+//     frames: testData.frames, boundingBoxSize: (40, 70), withFeatureSize: d, usingEM :EMflag
+//   )
   
-  // Run the tracker and return track with ground truth
-  let (track, groundTruth) = createSingleTrack(
-    onTrack: trackIndex, withTracker: &tracker,
-    andTestData: testData, withSampling: samplingFlag
-  )
+//   // Run the tracker and return track with ground truth
+//   let (track, groundTruth) = createSingleTrack(
+//     onTrack: trackIndex, withTracker: &tracker,
+//     andTestData: testData, withSampling: samplingFlag
+//   )
   
-  // Now create trajectory and metrics plot
-  let plt = Python.import("matplotlib.pyplot")
-  let (fig, axes) = plt.subplots(2, 1, figsize: Python.tuple([6, 12])).tuple2
-  plotTrajectory(
-    track: track, withGroundTruth: groundTruth, on: axes[0],
-    withTrackColors: plt.cm.jet, withGtColors: plt.cm.gray
-  )
+//   // Now create trajectory and metrics plot
+//   let plt = Python.import("matplotlib.pyplot")
+//   let (fig, axes) = plt.subplots(2, 1, figsize: Python.tuple([6, 12])).tuple2
+//   plotTrajectory(
+//     track: track, withGroundTruth: groundTruth, on: axes[0],
+//     withTrackColors: plt.cm.jet, withGtColors: plt.cm.gray
+//   )
   
-  plotOverlap(
-    track: track, withGroundTruth: groundTruth, on: axes[1]
-  )
+//   plotOverlap(
+//     track: track, withGroundTruth: groundTruth, on: axes[1]
+//   )
 
-  if let dir = resultDirectory {
-    /// Plot all the frames so we can visually inspect the situation
-    for i in track.indices {
-      let (fig_initial, _) = plotPatchWithGT(frame: testData.frames[i], actual: track[i], expected: groundTruth[i])
-      fig_initial.savefig("\(dir)/frank02_1st_img_track\(trackIndex)_\(d)_\(i).png", bbox_inches: "tight")
-    }
-  }
+//   if let dir = resultDirectory {
+//     /// Plot all the frames so we can visually inspect the situation
+//     for i in track.indices {
+//       let (fig_initial, _) = plotPatchWithGT(frame: testData.frames[i], actual: track[i], expected: groundTruth[i])
+//       fig_initial.savefig("\(dir)/frank02_1st_img_track\(trackIndex)_\(d)_\(i).png", bbox_inches: "tight")
+//     }
+//   }
 
-  return (fig, track, groundTruth)
-}
+//   return (fig, track, groundTruth)
+// }
 
 /// Returns `t` as a Swift tuple.
 fileprivate func unpack<A, B>(_ t: Tuple2<A, B>) -> (A, B) {

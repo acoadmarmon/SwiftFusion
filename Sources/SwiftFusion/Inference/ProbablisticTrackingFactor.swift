@@ -24,7 +24,7 @@ public struct ProbablisticTrackingFactor<
   /// The first adjacent variable, the pose of the target in the image.
   ///
   /// This explicitly specifies `LinearizableFactor2`'s `associatedtype V0`.
-  public typealias V0 = Pose2
+  public typealias V0 = Vector2
 
   /// The IDs of the variables adjacent to this factor.
   public let edges: Variables.Indices
@@ -53,7 +53,7 @@ public struct ProbablisticTrackingFactor<
   ///   - foregroundModel: A generative density on the foreground
   ///   - backgroundModel: A generative density on the background
   public init(
-    _ poseId: TypedID<Pose2>,
+    _ poseId: TypedID<Vector2>,
     measurement: Tensor<Float>,
     encoder: Encoder,
     patchSize: (Int, Int),
@@ -73,9 +73,9 @@ public struct ProbablisticTrackingFactor<
   }
 
   @differentiable
-  public func errorVector(_ pose: Pose2) -> Vector1 {
-    let region = OrientedBoundingBox(center: pose, rows: patchSize.0, cols: patchSize.1)
-    let patch = Tensor<Double>(measurement.patch(at: region, outputSize: appearanceModelSize).tensor)
+  public func errorVector(_ pose: Vector2) -> Vector1 {
+    let region = BoundingBox(center: pose, rows: patchSize.0, cols: patchSize.1)
+    let patch = Tensor<Double>(measurement.patch(at: OrientedBoundingBox(center: Pose2(Rot2(0.0), region.center), rows: region.rows, cols: region.cols), outputSize: appearanceModelSize).tensor)
     let features = encoder.encode(patch.expandingShape(at: 0)).squeezingShape(at: 0)
 
     let result = maxPossibleNegativity + foregroundModel.negativeLogLikelihood(features) - backgroundModel.negativeLogLikelihood(features)
