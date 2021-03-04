@@ -21,14 +21,15 @@ struct Frank02: ParsableCommand {
   // Make sure you have a folder `Results/frank02` before running
   // TODO: use the generic version instead, remove runRPTracker
   func run() {
-    let (fig, _, _) = runRPTracker(
-      directory: URL(fileURLWithPath: "./OIST_Data"),
-      onTrack: trackId, forFrames: trackLength, withSampling: true,
-      withFeatureSize: featureSize,
-      savePatchesIn: "Results/frank02"
-    )
+    print("tmp")
+    // let (fig, _, _) = runRPTracker(
+    //   directory: URL(fileURLWithPath: "./OIST_Data"),
+    //   onTrack: trackId, forFrames: trackLength, withSampling: true,
+    //   withFeatureSize: featureSize,
+    //   savePatchesIn: "Results/frank02"
+    // )
 
-    /// Actual track v.s. ground truth track
-    fig.savefig("Results/frank02/frank02_track\(trackId)_\(featureSize).pdf", bbox_inches: "tight")
+    // /// Actual track v.s. ground truth track
+    // fig.savefig("Results/frank02/frank02_track\(trackId)_\(featureSize).pdf", bbox_inches: "tight")
   }
 }

@@ -131,6 +131,14 @@ extension Vector2: AdditiveArithmetic, Vector {
     return result
   }
 
+  public mutating func perturbWith(stddev v: Vector2,
+                                   seed: TensorFlowSeed = Context.local.randomSeed
+  ) {
+    let r = Tensor<Double>(randomNormal: [2]).scalars
+    let tv = Vector2.TangentVector(v.x * r[0], v.y * r[1])
+    self.move(along: tv)
+  }
+
   public var dimension: Int { return 2 }
 
   public init<Source: Collection>(_ scalars: Source) where Source.Element == Double {

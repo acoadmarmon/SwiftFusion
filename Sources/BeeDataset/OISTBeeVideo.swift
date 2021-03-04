@@ -64,7 +64,7 @@ public struct OISTBeeLabel {
   public var location: OrientedBoundingBox {
     get {
       let bboxSize: (Int, Int) = [
-        OISTLabelType.Body: (40, 70),
+        OISTLabelType.Body: (70, 70),
         OISTLabelType.Butt: (40, 40)
       ][label]!
 

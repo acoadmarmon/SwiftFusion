@@ -33,7 +33,7 @@ public func runProbabilisticTracker<
 
   var tracker = makeProbabilisticTracker(
     model: likelihoodModel.encoder,
-    frames: testData.frames, targetSize: (40, 70),
+    frames: testData.frames, targetSize: (70, 70),
     foregroundModel: likelihoodModel.foregroundModel, backgroundModel: likelihoodModel.backgroundModel
   )
   
@@ -95,7 +95,7 @@ public func runProbabilisticTracker<Encoder: AppearanceModelEncoder>(
     trainingData: trainingData,
     encoder: encoder,
     frames: testData.frames,
-    boundingBoxSize: (40, 70),
+    boundingBoxSize: (70, 70),
     withFeatureSize: d,
     fgRandomFrameCount: trainingDatasetSize,
     bgRandomFrameCount: trainingDatasetSize,
@@ -270,7 +270,7 @@ public func makeProbabilisticTracker<
 
 //     let tracker = makeProbabilisticTracker(
 //       model: trainedEncoder,
-//       frames: frames, targetSize: (40, 70),
+//       frames: frames, targetSize: (70, 70),
 //       foregroundModel: foregroundModel, backgroundModel: backgroundModel
 //     )
 //     self.init(encoder: trainedEncoder, foregroundModel: foregroundModel, backgroundModel: backgroundModel, trackingConfiguration: tracker)
@@ -279,7 +279,7 @@ public func makeProbabilisticTracker<
 
 //   public mutating func infer(start: OrientedBoundingBox) -> [OrientedBoundingBox] {
 //     let prediction = self.trackingConfiguration.infer(knownStart: Tuple1(start.center), withSampling: true)
-//     let track = self.trackingConfiguration.frameVariableIDs.map { OrientedBoundingBox(center: prediction[unpack($0)], rows: 40, cols:70) }
+//     let track = self.trackingConfiguration.frameVariableIDs.map { OrientedBoundingBox(center: prediction[unpack($0)], rows: 70, cols:70) }
 //     return track
 //   }
 
@@ -287,12 +287,12 @@ public func makeProbabilisticTracker<
 //     print("\(start.center),\(frames.first!.shape)")
 //     var tracker = makeProbabilisticTracker(
 //       model: self.encoder,
-//       frames: frames, targetSize: (40, 70),
+//       frames: frames, targetSize: (70, 70),
 //       foregroundModel: self.foregroundModel, backgroundModel: self.backgroundModel
 //     )
     
 //     var prediction = tracker.infer(knownStart: Tuple1(start.center), withSampling: true)
-//     let track = tracker.frameVariableIDs.map { OrientedBoundingBox(center: prediction[unpack($0)], rows: 40, cols:70) }
+//     let track = tracker.frameVariableIDs.map { OrientedBoundingBox(center: prediction[unpack($0)], rows: 70, cols:70) }
 //     return track
 //   }
 
@@ -300,13 +300,13 @@ public func makeProbabilisticTracker<
 //     print("\(start.center),\(frames.first!.shape)")
 //     var tracker = makeProbabilisticTracker(
 //       model: self.encoder,
-//       frames: frames, targetSize: (40, 70),
+//       frames: frames, targetSize: (70, 70),
 //       foregroundModel: self.foregroundModel, backgroundModel: self.backgroundModel
 //     )
     
     
 //     var prediction = tracker.infer(knownStart: Tuple1(start.center), withSampling: true)
-//     var track = tracker.frameVariableIDs.map { OrientedBoundingBox(center: prediction[unpack($0)], rows: 40, cols:70) }
+//     var track = tracker.frameVariableIDs.map { OrientedBoundingBox(center: prediction[unpack($0)], rows: 70, cols:70) }
 //     var samples = [[OrientedBoundingBox]]()
 //     samples.append(track)
 
@@ -317,7 +317,7 @@ public func makeProbabilisticTracker<
 //       var graph = tracker.graph(on: (tracker.frameVariableIDs.count - 1)..<(tracker.frameVariableIDs.count))
 //       //tracker.addFixedBetweenFactor(prediction[previousVarID], currentVarID, &graph)
 //       tracker.extendBySampling(x: &prediction, fromFrame:(tracker.frameVariableIDs.count - 2), withGraph:graph, numberOfSamples: 2000)
-//       track = tracker.frameVariableIDs.map { OrientedBoundingBox(center: prediction[unpack($0)], rows: 40, cols:70) }
+//       track = tracker.frameVariableIDs.map { OrientedBoundingBox(center: prediction[unpack($0)], rows: 70, cols:70) }
 //       samples.append(track)
 //     }
 //     print(samples.count)

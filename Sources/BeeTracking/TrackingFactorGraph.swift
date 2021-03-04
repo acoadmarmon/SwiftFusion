@@ -21,9 +21,9 @@ public struct WeightedBetweenFactorVector2: LinearizableFactor2 {
 
   @differentiable
   public func errorVector(_ start: Pose, _ end: Pose) -> Pose.TangentVector {
-    let actualMotion = between(start, end)
-    let weighted = weight * difference.localCoordinate(actualMotion)
-    return Vector3(rotWeight * weighted.x, weighted.y, weighted.z)
+    let actualMotion = start - end
+    let weighted = weight * Pose2(Rot2(0.0), difference).localCoordinate(Pose2(Rot2(0.0), actualMotion))
+    return Vector2(weighted.y, weighted.z)
   }
 }
 
@@ -46,9 +46,9 @@ public struct WeightedBetweenFactorVector2SD: LinearizableFactor2 {
 
   @differentiable
   public func errorVector(_ start: Pose, _ end: Pose) -> Pose.TangentVector {
-    let actualMotion = between(start, end)
-    let local = difference.localCoordinate(actualMotion)
-    return Vector3(local.x / sdTheta, local.y / sdX, local.z / sdY)
+    let actualMotion = start - end
+    let local = Pose2(Rot2(0.0), difference).localCoordinate(Pose2(Rot2(0.0), actualMotion))
+    return Vector2(local.y / sdX, local.z / sdY)
   }
 }
 
@@ -68,8 +68,8 @@ public struct WeightedPriorFactorVector2: LinearizableFactor1 {
 
   @differentiable
   public func errorVector(_ start: Pose) -> Pose.TangentVector {
-    let weighted = weight * prior.localCoordinate(start)
-    return Vector3(rotWeight * weighted.x, weighted.y, weighted.z)
+    let weighted = weight * Pose2(Rot2(0.0), prior).localCoordinate(Pose2(Rot2(0.0), start))
+    return Vector2(weighted.y, weighted.z)
   }
 }
 
@@ -91,8 +91,8 @@ public struct WeightedPriorFactorVector2SD: LinearizableFactor1 {
 
   @differentiable
   public func errorVector(_ start: Pose) -> Pose.TangentVector {
-    let local = prior.localCoordinate(start)
-    return Vector3(local.x / sdTheta, local.y / sdX, local.z / sdY)
+    let local = Pose2(Rot2(0.0), prior).localCoordinate(Pose2(Rot2(0.0), start))
+    return Vector2(local.y / sdX, local.z / sdY)
   }
 }
 
@@ -202,7 +202,7 @@ public struct TrackingConfiguration<FrameVariables: VariableTuple> {
     var bestError = g.error(at: x)
     for _ in 0..<numberOfSamples {
       x[currentPoseID] = x[previousPoseID]
-      x[currentPoseID].perturbWith(stddev: Vector3(0.3, 8, 4.6))
+      x[currentPoseID].perturbWith(stddev: Vector2(8, 4.6))
       let candidateError = g.error(at: x)
       if candidateError < bestError {
         bestError = candidateError
@@ -355,7 +355,7 @@ public func createSingleTrack(
 ) -> ([Vector2], [Pose2]) {
   precondition(trackId < testData.tracks.count, "specified track does not exist!!!")
 
-  let startPose = testData.tracks[trackId].boxes[0].center
+  let startPose = testData.tracks[trackId].boxes[0].center.t
   let prediction = tracker.infer(knownStart: Tuple1(startPose), withSampling: samplingFlag)
   let track = tracker.frameVariableIDs.map { prediction[unpack($0)] }
   let groundTruth = testData.tracks[trackId].boxes.map { $0.center }

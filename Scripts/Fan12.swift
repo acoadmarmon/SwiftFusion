@@ -21,7 +21,7 @@ struct Fan12: ParsableCommand {
     from dataset: OISTBeeVideo,
     numberForeground: Int = 3000
   ) -> [LikelihoodModel.Datum] {
-    let fgBoxes = dataset.makeForegroundBoundingBoxes(patchSize: (40, 70), batchSize: numberForeground).map {
+    let fgBoxes = dataset.makeForegroundBoundingBoxes(patchSize: (70, 70), batchSize: numberForeground).map {
       (frame: $0.frame, type: LikelihoodModel.PatchType.fg, obb: $0.obb)
     }
     
@@ -36,7 +36,7 @@ struct Fan12: ParsableCommand {
 
     let trainingDataset = OISTBeeVideo(directory: dataDir, length: 100)!
     
-    let trainingData = Tensor<Double>(stacking: getTrainingData(from: trainingDataset).map { $0.frame!.patch(at: $0.obb) })
+    let trainingData = Tensor<Double>(stacking: getTrainingData(from: trainingDataset).map { $0.frame!.patch(at: OrientedBoundingBox(center: Pose2(Rot2(0.0), $0.obb.center.t), rows: $0.obb.rows, cols: $0.obb.cols)) })
     
     print("Training...")
     let rae: PretrainedDenseRAE = PretrainedDenseRAE(
@@ -44,6 +44,6 @@ struct Fan12: ParsableCommand {
       given: PretrainedDenseRAE.HyperParameters(hiddenDimension: kHiddenDimension, latentDimension: featureSize, weightFile: "")
     )
     
-    rae.save(to: "./oist_rae_weight_\(featureSize).npy")
+    rae.save(to: "./oist_rae_weight_\(featureSize)_70_70.npy")
   }
 }

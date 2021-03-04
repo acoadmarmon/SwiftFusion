@@ -15,7 +15,8 @@ struct Frank03: ParsableCommand {
   
   // Just runs an RP tracker and saves image to file
   func run() {
-    let (fig, _, _) = runRPTracker(directory: URL(fileURLWithPath: "./OIST_Data"), onTrack: trackId, forFrames: trackLength, withSampling:true, usingEM: true)
-    fig.savefig("frank01.pdf", bbox_inches: "tight")
+    print("tmp")
+    // let (fig, _, _) = runRPTracker(directory: URL(fileURLWithPath: "./OIST_Data"), onTrack: trackId, forFrames: trackLength, withSampling:true, usingEM: true)
+    // fig.savefig("frank01.pdf", bbox_inches: "tight")
   }
 }

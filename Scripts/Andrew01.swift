@@ -26,23 +26,23 @@ struct Andrew01: ParsableCommand {
     let np = Python.import("numpy")
     let plt = Python.import("matplotlib.pyplot")
     let pickle = Python.import("pickle")
-    let kHiddenDimension = 256
+    let kHiddenDimension = 512
 
     let (imageHeight, imageWidth, imageChannels) =
-      (40, 70, 1)
+      (70, 70, 1)
 
     
-    // var rae = DenseRAE(
-    //   imageHeight: imageHeight, imageWidth: imageWidth, imageChannels: imageChannels,
-    //   hiddenDimension: kHiddenDimension, latentDimension: featureSize
-    // )
+    var rae = DenseRAE(
+      imageHeight: imageHeight, imageWidth: imageWidth, imageChannels: imageChannels,
+      hiddenDimension: kHiddenDimension, latentDimension: featureSize
+    )
 
-    // if let weightsFile = weightsFile {
-    //   rae.load(weights: np.load(weightsFile, allow_pickle: true))
-    // } else {
-    //   rae.load(weights: np.load("./oist_rae_weight_\(featureSize).npy", allow_pickle: true))
-    // }
-    let rp = RandomProjection(fromShape: TensorShape([imageHeight, imageWidth, imageChannels]), toFeatureSize: featureSize)
+    if let weightsFile = weightsFile {
+      rae.load(weights: np.load(weightsFile, allow_pickle: true))
+    } else {
+      rae.load(weights: np.load("./oist_rae_weight_\(featureSize)_70_70.npy", allow_pickle: true))
+    }
+    // let rp = RandomProjection(fromShape: TensorShape([imageHeight, imageWidth, imageChannels]), toFeatureSize: featureSize)
 
     let trainingDatasetSize = 100
 
@@ -60,64 +60,64 @@ struct Andrew01: ParsableCommand {
     let evalTracker: Tracker = {frames, start in
         var tracker = trainProbabilisticTracker(
             trainingData: data,
-            encoder: rp,
+            encoder: rae,
             frames: frames,
-            boundingBoxSize: (40, 70),
+            boundingBoxSize: (70, 70),
             withFeatureSize: featureSize,
             fgRandomFrameCount: trainingDatasetSize,
             bgRandomFrameCount: trainingDatasetSize,
             numberOfTrainingSamples: 3000
         )
         
-        let prediction = tracker.infer(knownStart: Tuple1(start.center), withSampling: true)
-        let track = tracker.frameVariableIDs.map { OrientedBoundingBox(center: prediction[unpack($0)], rows: 40, cols:70) }
+        let prediction = tracker.infer(knownStart: Tuple1(start.center.t), withSampling: true)
+        let track = tracker.frameVariableIDs.map { OrientedBoundingBox(center: Pose2(Rot2(0.0), prediction[unpack($0)]), rows: 70, cols:70) }
         
-        var statistics = FrameStatistics(Tensor([1.0]))
-        statistics.mean = Tensor(0.0)
-        statistics.standardDeviation = Tensor(1.0)
-        let (fg, bg, _) = getTrainingBatches(
-          dataset: data, boundingBoxSize: (40, 70),
-          fgBatchSize: 3000,
-          bgBatchSize: 3000,
-          fgRandomFrameCount: trainingDatasetSize,
-          bgRandomFrameCount: trainingDatasetSize,
-          useCache: true
-        )
-        let batchPositive = rp.encode(fg)
-        let foregroundModel = MultivariateGaussian(from:batchPositive, regularizer: 1e-3)
+        // var statistics = FrameStatistics(Tensor([1.0]))
+        // statistics.mean = Tensor(0.0)
+        // statistics.standardDeviation = Tensor(1.0)
+        // let (fg, bg, _) = getTrainingBatches(
+        //   dataset: data, boundingBoxSize: (70, 70),
+        //   fgBatchSize: 3000,
+        //   bgBatchSize: 3000,
+        //   fgRandomFrameCount: trainingDatasetSize,
+        //   bgRandomFrameCount: trainingDatasetSize,
+        //   useCache: true
+        // )
+        // let batchPositive = rp.encode(fg)
+        // let foregroundModel = MultivariateGaussian(from:batchPositive, regularizer: 1e-3)
 
-        let batchNegative = rp.encode(bg)
-        var backgroundModel = MultivariateGaussian(from: batchNegative, regularizer: 1e-3)
+        // let batchNegative = rp.encode(bg)
+        // var backgroundModel = MultivariateGaussian(from: batchNegative, regularizer: 1e-3)
         
         
 
-        let deltaXRange = Array(-60..<60).map { Double($0) }
-        let deltaYRange = Array(-40..<40).map { Double($0) }
-        var (fig, _) = plotErrorPlaneTranslation(
-          frame: frames.last!,
-          at: track.last!.center,
-          deltaXs: deltaXRange,
-          deltaYs: deltaYRange,
-          statistics: statistics,
-          encoder: rp,
-          foregroundModel: foregroundModel,
-          backgroundModel: backgroundModel
-        )
-        fig.savefig("Results/andrew01/sequence\(i)/error_plane.png", bbox_inches: "tight")
-        plt.close("all")
-        let nbBackgroundModel = GaussianNB(from: batchNegative, regularizer: 1e-3)
-        (fig, _) = plotErrorPlaneTranslation(
-          frame: frames.last!,
-          at: track.last!.center,
-          deltaXs: deltaXRange,
-          deltaYs: deltaYRange,
-          statistics: statistics,
-          encoder: rp,
-          foregroundModel: foregroundModel,
-          backgroundModel: nbBackgroundModel
-        )
-        fig.savefig("Results/andrew01/sequence\(i)/error_plane_nb.png", bbox_inches: "tight")
-        plt.close("all")
+        // let deltaXRange = Array(-60..<60).map { Double($0) }
+        // let deltaYRange = Array(-40..<40).map { Double($0) }
+        // var (fig, _) = plotErrorPlaneTranslation(
+        //   frame: frames.last!,
+        //   at: track.last!.center,
+        //   deltaXs: deltaXRange,
+        //   deltaYs: deltaYRange,
+        //   statistics: statistics,
+        //   encoder: rp,
+        //   foregroundModel: foregroundModel,
+        //   backgroundModel: backgroundModel
+        // )
+        // fig.savefig("Results/andrew01/sequence\(i)/error_plane.png", bbox_inches: "tight")
+        // plt.close("all")
+        // let nbBackgroundModel = GaussianNB(from: batchNegative, regularizer: 1e-3)
+        // (fig, _) = plotErrorPlaneTranslation(
+        //   frame: frames.last!,
+        //   at: track.last!.center,
+        //   deltaXs: deltaXRange,
+        //   deltaYs: deltaYRange,
+        //   statistics: statistics,
+        //   encoder: rp,
+        //   foregroundModel: foregroundModel,
+        //   backgroundModel: nbBackgroundModel
+        // )
+        // fig.savefig("Results/andrew01/sequence\(i)/error_plane_nb.png", bbox_inches: "tight")
+        // plt.close("all")
         i = i + 1
         return track
     }
@@ -151,7 +151,7 @@ struct Andrew01: ParsableCommand {
     }
 
     print("Accuracy for all sequences is \(results.trackerMetrics.accuracy) with Robustness of \(results.trackerMetrics.robustness)")
-    let f = Python.open("Results/EAO/rp_\(featureSize).data", "wb")
+    let f = Python.open("Results/EAO/rae_\(featureSize)_vector2.data", "wb")
     pickle.dump(results.expectedAverageOverlap.curve, f)
 
 

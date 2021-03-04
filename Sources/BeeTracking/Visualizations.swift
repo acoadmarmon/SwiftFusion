@@ -91,7 +91,7 @@ public func plotFrameWithPatches(frame: Tensor<Float>, actual: Pose2, expected: 
 
   let (fig, ax) = plt.subplots(figsize: Python.tuple([8, 4])).tuple2
   ax.imshow(frame.makeNumpyArray() / 255.0)
-  let actualBoundingBox = OrientedBoundingBox(center: actual, rows: 40, cols: 70)
+  let actualBoundingBox = OrientedBoundingBox(center: actual, rows: 70, cols: 70)
   ax.plot(actualBoundingBox.corners.map{$0.x} + [actualBoundingBox.corners.first!.x], actualBoundingBox.corners.map{$0.y} + [actualBoundingBox.corners.first!.y], "r-")
   // ax.plot(Python.tuple(actualBoundingBox.rot.)
   var supportPatch = mpl.patches.RegularPolygon(
