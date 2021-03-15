@@ -151,6 +151,7 @@ public func trainProbabilisticTracker<Encoder: AppearanceModelEncoder>(
     bgRandomFrameCount: bgRandomFrameCount,
     useCache: true
   )
+  print(fg.shape)
   let batchPositive = encoder.encode(fg)
   let foregroundModel = MultivariateGaussian(from:batchPositive, regularizer: 1e-3)
 
